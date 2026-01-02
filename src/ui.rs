@@ -98,15 +98,15 @@ fn draw_board(f: &mut Frame, game: &Game, area: Rect) {
             //   If Pencil Mode: show marks.
             //   If Normal Mode: checks marks count. If 1, show it with validation color.
             
-            // Region Coloring
+            // Region Coloring - More vibrant colors for better visibility
             let region_idx = (r / 2) * 2 + (c / 3);
             let region_bg = match region_idx {
-                0 => Color::Rgb(20, 20, 50),
-                1 => Color::Rgb(20, 50, 20),
-                2 => Color::Rgb(50, 20, 20),
-                3 => Color::Rgb(50, 50, 20),
-                4 => Color::Rgb(20, 50, 50),
-                5 => Color::Rgb(50, 20, 50),
+                0 => Color::Rgb(30, 30, 80),   // Deeper blue
+                1 => Color::Rgb(30, 80, 30),   // Richer green
+                2 => Color::Rgb(80, 30, 30),   // Warmer red
+                3 => Color::Rgb(80, 80, 30),   // Olive
+                4 => Color::Rgb(30, 80, 80),   // Teal
+                5 => Color::Rgb(80, 30, 80),   // Magenta
                 _ => Color::Black,
             };
 

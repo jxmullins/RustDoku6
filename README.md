@@ -56,6 +56,19 @@ cargo run
 - **Visual Feedback** — Explicit numbers have a solid background, while single pencil marks show as colored text, making the game state readable at a glance.
 - **Beautiful TUI** — Inverted grid lines and distinct region colors for a premium terminal experience.
 
+
+---
+
+## Roadmap
+
+Planned features for future releases:
+
+- [ ] Timer display
+- [ ] New Game key (`n`)
+- [ ] Difficulty selector (Easy/Medium/Hard)
+- [ ] Undo functionality (`u`)
+- [ ] Win celebration animation
+
 ---
 
 ## Why I Built This
