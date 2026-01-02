@@ -346,7 +346,7 @@ fn draw_about_popup(f: &mut Frame) {
     let text = "RustDoku6\n\n\
                 A 6x6 Sudoku TUI game written in Rust.\n\n\
                 Author: jxmullins\n\
-                Built with: Rust, Ratatui, Crossterm\n\n\
+                Built with: Rust, Ratatui, Antigravity\n\n\
                 Press 'i' or 'Esc' to close.";
 
     let paragraph = Paragraph::new(text)
