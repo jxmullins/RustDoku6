@@ -61,7 +61,7 @@ fn draw_board(f: &mut Frame, game: &Game, area: Rect) {
     // So for a square board, Width (chars) should be ~2x Height (rows).
     // Limit width to 60% of screen to prevent stretching.
     
-    let center_area = centered_rect(area, 60, 2.0);
+    let center_area = calculate_board_rect(area, 60);
 
     // 2. Background (The "Lines")
     let grid_bg_color = Color::Blue;
@@ -288,28 +288,37 @@ fn centered_rect(r: Rect, width_percent: u16, aspect_ratio: f32) -> Rect {
     }
     
     // 4. Center it
-    let odd_width = available_width.saturating_sub(target_width) % 2;
-    let odd_height = available_height.saturating_sub(target_height) % 2;
+    let x = r.x + (r.width.saturating_sub(target_width)) / 2;
+    let y = r.y + (r.height.saturating_sub(target_height)) / 2;
     
-    let popup_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length((available_height - target_height) / 2),
-            Constraint::Length(target_height),
-            Constraint::Length((available_height - target_height) / 2 + odd_height),
-        ])
-        .split(r);
+    Rect::new(x, y, target_width, target_height)
+}
 
-    let top_middle = popup_layout[1];
+// Calculates a board size that guarantees perfectly uniform cells
+// Formula: Total_Size = (6 * Cell_Size) + 5 gaps
+// This ensures Integer Division by 6 has 0 remainder.
+fn calculate_board_rect(available: Rect, max_width_percent: u16) -> Rect {
+    let avail_w = (available.width as f32 * (max_width_percent as f32 / 100.0)) as u16;
+    let avail_h = available.height;
     
-    let horizontal_layout = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Length((available_width - target_width) / 2),
-            Constraint::Length(target_width),
-            Constraint::Length((available_width - target_width) / 2 + odd_width),
-        ])
-        .split(top_middle);
-
-    horizontal_layout[1]
+    // Solve for 's' (scalar size)
+    // Board_W = 6 * (2s) + 5 <= Available_W  =>  12s <= W - 5
+    // Board_H = 6 * (1s) + 5 <= Available_H  =>  6s <= H - 5
+    
+    let s_w = if avail_w > 5 { (avail_w - 5) / 12 } else { 0 };
+    let s_h = if avail_h > 5 { (avail_h - 5) / 6 } else { 0 };
+    
+    // Use the limiting scalar, minimum 1
+    let s = std::cmp::max(1, std::cmp::min(s_w, s_h));
+    
+    let cell_h = s;
+    let cell_w = 2 * s;
+    
+    let board_w = 6 * cell_w + 5;
+    let board_h = 6 * cell_h + 5;
+    
+    let x = available.x + (available.width.saturating_sub(board_w)) / 2;
+    let y = available.y + (available.height.saturating_sub(board_h)) / 2;
+    
+    Rect::new(x, y, board_w, board_h)
 }
