@@ -56,32 +56,24 @@ fn draw_board(f: &mut Frame, game: &Game, area: Rect) {
     // 2. Use Layout with spacing to create gaps.
     // 3. Render cells as opaque blocks on top.
 
-    // 1. Background (The "Lines")
+    // 1. Calculate Centered Board Area
+    // We want a roughly square look. In terminals, chars are ~1:2 (W:H).
+    // So for a square board, Width (chars) should be ~2x Height (rows).
+    // Limit width to 60% of screen to prevent stretching.
+    
+    let center_area = centered_rect(area, 60, 2.0);
+
+    // 2. Background (The "Lines")
     let grid_bg_color = Color::Blue;
     let bg_block = Block::default().style(Style::default().bg(grid_bg_color));
-    f.render_widget(bg_block, area);
-
-    // 2. Layouts with Spacing
+    f.render_widget(bg_block, center_area);
     
-    // We want regions to be visible.
-    // Standard 6x6 regions are 3 cols x 2 rows (wait, usually 2x3 or 3x2).
-    // MVP said "standard 6x6 usually uses 2 rows x 3 cols regions" (width 3, height 2).
-    // So distinct gaps after row 1, 3 (already done via spacing).
-    // Actually, to make regions distinct, we could use *larger* spacing for regions?
-    // Ratatui Layout spacing is uniform.
-    // We can nest layouts: 
-    // Outer layout: 3 big rows (regions vertical)? No, regions are 2 rows deep.
-    // So 3 vertical regions.
-    // Inside each, 2 rows.
-    
-    // Let's try uniform spacing first (1 unit) everywhere.
-    // It creates a nice grid.
-    
+    // 3. Layouts with Spacing - Use center_area instead of full area
     let rows_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Ratio(1, 6); 6])
-        .spacing(1) // Gap between rows
-        .split(area);
+        .spacing(1)
+        .split(center_area);
         
     for r in 0..6 {
         let cols_layout = Layout::default()
@@ -273,4 +265,51 @@ fn draw_board(f: &mut Frame, game: &Game, area: Rect) {
             }
         }
     }
+}
+
+// Helper to center a rect within another, maintaining aspect ratio logic
+// width_percent: max % of width to use
+// aspect_ratio: width / height (chars). For square in terminal, use 2.0.
+fn centered_rect(r: Rect, width_percent: u16, aspect_ratio: f32) -> Rect {
+    let available_width = r.width;
+    let available_height = r.height;
+
+    // 1. Determine Max Width
+    let max_width = (available_width as f32 * (width_percent as f32 / 100.0)) as u16;
+    
+    // 2. Calculate Height based on aspect ratio (W = H * ratio  => H = W / ratio)
+    let mut target_height = (max_width as f32 / aspect_ratio) as u16;
+    let mut target_width = max_width;
+
+    // 3. Constrain by available height
+    if target_height > available_height {
+        target_height = available_height;
+        target_width = (target_height as f32 * aspect_ratio) as u16;
+    }
+    
+    // 4. Center it
+    let odd_width = available_width.saturating_sub(target_width) % 2;
+    let odd_height = available_height.saturating_sub(target_height) % 2;
+    
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length((available_height - target_height) / 2),
+            Constraint::Length(target_height),
+            Constraint::Length((available_height - target_height) / 2 + odd_height),
+        ])
+        .split(r);
+
+    let top_middle = popup_layout[1];
+    
+    let horizontal_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Length((available_width - target_width) / 2),
+            Constraint::Length(target_width),
+            Constraint::Length((available_width - target_width) / 2 + odd_width),
+        ])
+        .split(top_middle);
+
+    horizontal_layout[1]
 }
