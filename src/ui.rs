@@ -32,15 +32,17 @@ pub fn draw(f: &mut Frame, game: &Game) {
     draw_board(f, game, chunks[1]);
 
     // Instructions
+    // Instructions
     let status_text = match game.state {
         GameState::Playing => {
             let mode_str = match game.mode {
                 crate::model::InputMode::Normal => "NORMAL",
                 crate::model::InputMode::Pencil => "PENCIL",
             };
-            format!("Mode: {} (p) | Mistakes: {} | Arrows/1-6/BS | q: Quit", mode_str, game.mistakes)
+            format!("Mode: {} (p) | Mistakes: {} | Arrows/1-6/BS | i: About | q: Quit", mode_str, game.mistakes)
         },
         GameState::Won => format!("YOU WON! Mistakes: {} | Press 'q' to quit.", game.mistakes),
+        GameState::About => "Press 'i' or 'Esc' to return to game.".to_string(),
     };
     
     let instructions = Paragraph::new(status_text)
@@ -48,6 +50,11 @@ pub fn draw(f: &mut Frame, game: &Game) {
         .style(Style::default().fg(if let GameState::Won = game.state { Color::Green } else { Color::White }))
         .block(Block::default().borders(Borders::ALL));
     f.render_widget(instructions, chunks[2]);
+
+    // Render About Popup if needed
+    if let GameState::About = game.state {
+        draw_about_popup(f);
+    }
 }
 
 fn draw_board(f: &mut Frame, game: &Game, area: Rect) {
@@ -309,4 +316,43 @@ fn calculate_board_rect(available: Rect, max_width_percent: u16) -> (Rect, u16) 
     let y = available.y + (available.height.saturating_sub(board_h)) / 2;
     
     (Rect::new(x, y, board_w, board_h), s)
+}
+
+// Helper to draw the About popup centered on screen
+fn draw_about_popup(f: &mut Frame) {
+    let area = f.area();
+    
+    // Calculate a centered popup area (approx 60% width, 40% height)
+    let popup_width_percent = 60;
+    let popup_height_percent = 30; // Shorter height for minimal text
+    
+    let popup_width = (area.width as f32 * (popup_width_percent as f32 / 100.0)) as u16;
+    let popup_height = (area.height as f32 * (popup_height_percent as f32 / 100.0)) as u16;
+    
+    let x = area.x + (area.width.saturating_sub(popup_width)) / 2;
+    let y = area.y + (area.height.saturating_sub(popup_height)) / 2;
+    
+    let popup_area = Rect::new(x, y, popup_width, popup_height);
+    
+    // Clear the background of the popup area so grid doesn't show through
+    f.render_widget(ratatui::widgets::Clear, popup_area);
+    
+    let block = Block::default()
+        .title(" About RustDoku6 ")
+        .borders(Borders::ALL)
+        .style(Style::default().bg(Color::DarkGray).fg(Color::White))
+        .title_alignment(Alignment::Center);
+
+    let text = "RustDoku6\n\n\
+                A 6x6 Sudoku TUI game written in Rust.\n\n\
+                Author: jxmullins\n\
+                Built with: Rust, Ratatui, Crossterm\n\n\
+                Press 'i' or 'Esc' to close.";
+
+    let paragraph = Paragraph::new(text)
+        .block(block)
+        .alignment(Alignment::Center)
+        .wrap(ratatui::widgets::Wrap { trim: true });
+
+    f.render_widget(paragraph, popup_area);
 }

@@ -53,20 +53,38 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, game: &mut Game) -> io::Resul
             && let Event::Key(key) = event::read()?
                 && key.kind == KeyEventKind::Press {
                     match key.code {
-                        KeyCode::Char('q') => return Ok(()),
-                        KeyCode::Char('p') => game.toggle_mode(),
-                        KeyCode::Left => game.move_cursor(0, -1),
-                        KeyCode::Right => game.move_cursor(0, 1),
-                        KeyCode::Up => game.move_cursor(-1, 0),
-                        KeyCode::Down => game.move_cursor(1, 0),
-                        KeyCode::Char('1') => game.handle_input(1),
-                        KeyCode::Char('2') => game.handle_input(2),
-                        KeyCode::Char('3') => game.handle_input(3),
-                        KeyCode::Char('4') => game.handle_input(4),
-                        KeyCode::Char('5') => game.handle_input(5),
-                        KeyCode::Char('6') => game.handle_input(6),
-                        KeyCode::Backspace | KeyCode::Delete => game.clear_cell(),
-                        _ => {}
+                        KeyCode::Char('q') | KeyCode::Esc => {
+                            if let crate::model::GameState::About = game.state {
+                                game.state = crate::model::GameState::Playing; 
+                            } else {
+                                return Ok(());
+                            }
+                        }
+                        KeyCode::Char('i') | KeyCode::Char('I') => {
+                            if let crate::model::GameState::About = game.state {
+                                game.state = crate::model::GameState::Playing;
+                            } else {
+                                game.state = crate::model::GameState::About;
+                            }
+                        }
+                        KeyCode::Char('p') => if let crate::model::GameState::Playing = game.state { game.toggle_mode() },
+                        KeyCode::Left => if let crate::model::GameState::Playing = game.state { game.move_cursor(0, -1) },
+                        KeyCode::Right => if let crate::model::GameState::Playing = game.state { game.move_cursor(0, 1) },
+                        KeyCode::Up => if let crate::model::GameState::Playing = game.state { game.move_cursor(-1, 0) },
+                        KeyCode::Down => if let crate::model::GameState::Playing = game.state { game.move_cursor(1, 0) },
+                        KeyCode::Char('1') => if let crate::model::GameState::Playing = game.state { game.handle_input(1) },
+                        KeyCode::Char('2') => if let crate::model::GameState::Playing = game.state { game.handle_input(2) },
+                        KeyCode::Char('3') => if let crate::model::GameState::Playing = game.state { game.handle_input(3) },
+                        KeyCode::Char('4') => if let crate::model::GameState::Playing = game.state { game.handle_input(4) },
+                        KeyCode::Char('5') => if let crate::model::GameState::Playing = game.state { game.handle_input(5) },
+                        KeyCode::Char('6') => if let crate::model::GameState::Playing = game.state { game.handle_input(6) },
+                        KeyCode::Backspace | KeyCode::Delete => if let crate::model::GameState::Playing = game.state { game.clear_cell() },
+                        _ => {
+                            // Any key exits About screen if we are in it
+                            if let crate::model::GameState::About = game.state {
+                                game.state = crate::model::GameState::Playing;
+                            }
+                        }
                     }
                 }
     }

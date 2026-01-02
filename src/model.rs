@@ -18,6 +18,7 @@ pub enum InputMode {
 pub enum GameState {
     Playing,
     Won,
+    About,
 }
 
 pub struct Grid {
