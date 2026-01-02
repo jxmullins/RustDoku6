@@ -276,32 +276,7 @@ fn draw_board(f: &mut Frame, game: &Game, area: Rect) {
     }
 }
 
-// Helper to center a rect within another, maintaining aspect ratio logic
-// width_percent: max % of width to use
-// aspect_ratio: width / height (chars). For square in terminal, use 2.0.
-fn centered_rect(r: Rect, width_percent: u16, aspect_ratio: f32) -> Rect {
-    let available_width = r.width;
-    let available_height = r.height;
 
-    // 1. Determine Max Width
-    let max_width = (available_width as f32 * (width_percent as f32 / 100.0)) as u16;
-    
-    // 2. Calculate Height based on aspect ratio (W = H * ratio  => H = W / ratio)
-    let mut target_height = (max_width as f32 / aspect_ratio) as u16;
-    let mut target_width = max_width;
-
-    // 3. Constrain by available height
-    if target_height > available_height {
-        target_height = available_height;
-        target_width = (target_height as f32 * aspect_ratio) as u16;
-    }
-    
-    // 4. Center it
-    let x = r.x + (r.width.saturating_sub(target_width)) / 2;
-    let y = r.y + (r.height.saturating_sub(target_height)) / 2;
-    
-    Rect::new(x, y, target_width, target_height)
-}
 
 // Calculates a board size that guarantees perfectly uniform cells
 // Formula: Total_Size = (6 * Cell_Size) + 5 gaps
