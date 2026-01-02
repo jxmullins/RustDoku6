@@ -38,9 +38,9 @@ pub fn draw(f: &mut Frame, game: &Game) {
                 crate::model::InputMode::Normal => "NORMAL",
                 crate::model::InputMode::Pencil => "PENCIL",
             };
-            format!("Mode: {} (p) | Arrows: Move | 1-6: Input | Backspace: Clear | q: Quit", mode_str)
+            format!("Mode: {} (p) | Mistakes: {} | Arrows/1-6/BS | q: Quit", mode_str, game.mistakes)
         },
-        GameState::Won => "YOU WON! Press 'q' to quit.".to_string(),
+        GameState::Won => format!("YOU WON! Mistakes: {} | Press 'q' to quit.", game.mistakes),
     };
     
     let instructions = Paragraph::new(status_text)

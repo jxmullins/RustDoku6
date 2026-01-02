@@ -131,10 +131,11 @@ impl Grid {
 
 pub struct Game {
     pub grid: Grid,
-    pub solution: [[u8; 6]; 6], // Store the solution
+    pub solution: [[u8; 6]; 6],
     pub cursor: (usize, usize),
     pub state: GameState,
     pub mode: InputMode,
+    pub mistakes: u32,
 }
 
 impl Game {
@@ -183,6 +184,7 @@ impl Game {
             cursor: (0, 0),
             state: GameState::Playing,
             mode: InputMode::Normal,
+            mistakes: 0,
         }
     }
     
@@ -205,8 +207,13 @@ impl Game {
 
         match self.mode {
             InputMode::Normal => {
+                // Track mistakes before setting the value
+                if !self.is_correct_move(r, c, num) {
+                    self.mistakes += 1;
+                }
+                
                 self.grid.cells[r][c].value = Some(num);
-                // Clear marks on set? Or keep them? Usually clear makes sense.
+                // Clear marks on set
                 self.grid.cells[r][c].marks = [false; 6];
                 
                 if self.grid.is_solved() {
