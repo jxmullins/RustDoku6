@@ -6,9 +6,11 @@ Set Padding 40
 Set FontFamily "JetBrains Mono"
 
 # Start the game
+Hide
 Type "cargo run"
 Enter
-Sleep 5s
+Show
+Sleep 15s
 
 # Play a bit to show state
 Type "p"
