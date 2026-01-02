@@ -61,24 +61,24 @@ fn draw_board(f: &mut Frame, game: &Game, area: Rect) {
     // So for a square board, Width (chars) should be ~2x Height (rows).
     // Limit width to 60% of screen to prevent stretching.
     
-    let center_area = calculate_board_rect(area, 60);
+    let (center_area, s) = calculate_board_rect(area, 60);
 
     // 2. Background (The "Lines")
     let grid_bg_color = Color::Blue;
     let bg_block = Block::default().style(Style::default().bg(grid_bg_color));
     f.render_widget(bg_block, center_area);
     
-    // 3. Layouts with Spacing - Use center_area instead of full area
+    // 3. Layouts with Spacing - Use Fixed Lengths for perfect uniformity
     let rows_layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Ratio(1, 6); 6])
+        .constraints([Constraint::Length(s); 6])
         .spacing(1)
         .split(center_area);
         
     for r in 0..6 {
         let cols_layout = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Ratio(1, 6); 6])
+            .constraints([Constraint::Length(2 * s); 6])
             .spacing(1) // Gap between cols
             .split(rows_layout[r]);
             
@@ -297,7 +297,10 @@ fn centered_rect(r: Rect, width_percent: u16, aspect_ratio: f32) -> Rect {
 // Calculates a board size that guarantees perfectly uniform cells
 // Formula: Total_Size = (6 * Cell_Size) + 5 gaps
 // This ensures Integer Division by 6 has 0 remainder.
-fn calculate_board_rect(available: Rect, max_width_percent: u16) -> Rect {
+// Calculates a board size that guarantees perfectly uniform cells
+// Formula: Total_Size = (6 * Cell_Size) + 5 gaps
+// returns (BoardRect, scalar_s) where scalar_s is the height of a cell
+fn calculate_board_rect(available: Rect, max_width_percent: u16) -> (Rect, u16) {
     let avail_w = (available.width as f32 * (max_width_percent as f32 / 100.0)) as u16;
     let avail_h = available.height;
     
@@ -320,5 +323,5 @@ fn calculate_board_rect(available: Rect, max_width_percent: u16) -> Rect {
     let x = available.x + (available.width.saturating_sub(board_w)) / 2;
     let y = available.y + (available.height.saturating_sub(board_h)) / 2;
     
-    Rect::new(x, y, board_w, board_h)
+    (Rect::new(x, y, board_w, board_h), s)
 }
