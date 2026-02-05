@@ -153,12 +153,17 @@ impl Game {
         // 1. Generate full board
         // Note: fill_randomly should always succeed for valid Sudoku rules,
         // but we verify to prevent potential panics
-        let success = grid.fill_randomly();
+        let mut success = grid.fill_randomly();
         if !success {
             // This should never happen with valid Sudoku logic,
             // but if it does, try again with a new grid
             grid = Grid::new();
-            grid.fill_randomly();
+            success = grid.fill_randomly();
+            
+            // If it fails twice, panic with a clear message
+            if !success {
+                panic!("Failed to generate a valid Sudoku grid after multiple attempts. This indicates a critical bug in the generation algorithm.");
+            }
         }
         
         // 2. Capture Solution
@@ -229,7 +234,10 @@ impl Game {
 
         match self.mode {
             InputMode::Normal => {
-                // Track mistakes before setting the value (use saturating_add to prevent overflow)
+                // Track mistakes before setting the value
+                // Use saturating_add to prevent overflow. In normal gameplay, reaching u32::MAX
+                // (4+ billion mistakes) is impossible, but this prevents undefined behavior
+                // if the counter is somehow incremented excessively.
                 if !self.is_correct_move(r, c, num) {
                     self.mistakes = self.mistakes.saturating_add(1);
                 }
