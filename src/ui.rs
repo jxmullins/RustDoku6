@@ -164,7 +164,8 @@ fn draw_board(f: &mut Frame, game: &Game, area: Rect) {
                         // Check marks count. If 1, show it with validation color.
                         let mark_count = cell.marks.iter().filter(|&&m| m).count();
                         if mark_count == 1 {
-                            let mark_idx = cell.marks.iter().position(|&m| m).unwrap();
+                            // Safe to unwrap because mark_count == 1 guarantees at least one mark exists
+                            let mark_idx = cell.marks.iter().position(|&m| m).expect("Mark should exist when count is 1");
                             let mark_val = (mark_idx + 1) as u8;
                             rendered_text = mark_val.to_string();
                             use_validation_style = true;
