@@ -49,9 +49,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, game: &mut Game) -> io::Resul
     loop {
         terminal.draw(|f| ui::draw(f, game)).map_err(|e| io::Error::other(e.to_string()))?;
 
-        if event::poll(Duration::from_millis(250))?
-            && let Event::Key(key) = event::read()?
-                && key.kind == KeyEventKind::Press {
+        if event::poll(Duration::from_millis(250))? {
+            if let Event::Key(key) = event::read()? {
+                if key.kind == KeyEventKind::Press {
                     match key.code {
                         KeyCode::Char('q') | KeyCode::Esc => {
                             if let crate::model::GameState::About = game.state {
@@ -87,5 +87,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, game: &mut Game) -> io::Resul
                         }
                     }
                 }
+            }
+        }
     }
 }

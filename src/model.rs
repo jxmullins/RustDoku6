@@ -63,20 +63,24 @@ impl Grid {
     pub fn is_valid_move(&self, row: usize, col: usize, value: u8) -> bool {
         // Row check
         for c in 0..6 {
-            if c != col
-                && let Some(v) = self.cells[row][c].value
-                    && v == value {
+            if c != col {
+                if let Some(v) = self.cells[row][c].value {
+                    if v == value {
                         return false;
                     }
+                }
+            }
         }
 
         // Col check
         for r in 0..6 {
-            if r != row
-                && let Some(v) = self.cells[r][col].value
-                    && v == value {
+            if r != row {
+                if let Some(v) = self.cells[r][col].value {
+                    if v == value {
                         return false;
                     }
+                }
+            }
         }
 
         // 2x3 Box check (Standard 6x6 is usually 2 rows x 3 cols regions)
@@ -90,11 +94,13 @@ impl Grid {
 
         for r in start_row..start_row + 2 {
             for c in start_col..start_col + 3 {
-                if (r != row || c != col)
-                    && let Some(v) = self.cells[r][c].value
-                        && v == value {
+                if r != row || c != col {
+                    if let Some(v) = self.cells[r][c].value {
+                        if v == value {
                             return false;
                         }
+                    }
+                }
             }
         }
 
@@ -120,7 +126,8 @@ impl Grid {
         
         for r in 0..6 {
             for c in 0..6 {
-                let val = self.cells[r][c].value.unwrap(); // Safe because is_full
+                // Safe because is_full() returned true, but use expect for clarity
+                let val = self.cells[r][c].value.expect("Cell should have value when grid is full");
                 if !self.is_valid_move(r, c, val) {
                     return false;
                 }
@@ -144,13 +151,27 @@ impl Game {
         let mut grid = Grid::new();
         
         // 1. Generate full board
-        grid.fill_randomly();
+        // Note: fill_randomly should always succeed for valid Sudoku rules,
+        // but we verify to prevent potential panics
+        let mut success = grid.fill_randomly();
+        if !success {
+            // This should never happen with valid Sudoku logic,
+            // but if it does, try again with a new grid
+            grid = Grid::new();
+            success = grid.fill_randomly();
+            
+            // If it fails twice, panic with a clear message
+            if !success {
+                panic!("Failed to generate a valid Sudoku grid after multiple attempts. This indicates a critical bug in the generation algorithm.");
+            }
+        }
         
         // 2. Capture Solution
         let mut solution = [[0; 6]; 6];
         for r in 0..6 {
             for c in 0..6 {
-                solution[r][c] = grid.cells[r][c].value.unwrap();
+                // Safe to unwrap here because fill_randomly succeeded
+                solution[r][c] = grid.cells[r][c].value.expect("Grid should be fully filled after successful generation");
             }
         }
         
@@ -201,6 +222,11 @@ impl Game {
     }
 
     pub fn handle_input(&mut self, num: u8) {
+        // Validate input is in valid range
+        if !(1..=6).contains(&num) {
+            return;
+        }
+        
         let (r, c) = self.cursor;
         if self.grid.cells[r][c].is_fixed {
             return;
@@ -209,8 +235,11 @@ impl Game {
         match self.mode {
             InputMode::Normal => {
                 // Track mistakes before setting the value
+                // Use saturating_add to prevent overflow. In normal gameplay, reaching u32::MAX
+                // (4+ billion mistakes) is impossible, but this prevents undefined behavior
+                // if the counter is somehow incremented excessively.
                 if !self.is_correct_move(r, c, num) {
-                    self.mistakes += 1;
+                    self.mistakes = self.mistakes.saturating_add(1);
                 }
                 
                 self.grid.cells[r][c].value = Some(num);
@@ -222,11 +251,9 @@ impl Game {
                 }
             }
             InputMode::Pencil => {
-                // Toggle mark
-                if (1..=6).contains(&num) {
-                    let idx = (num - 1) as usize;
-                    self.grid.cells[r][c].marks[idx] = !self.grid.cells[r][c].marks[idx];
-                }
+                // Toggle mark (num is already validated to be 1..=6)
+                let idx = (num - 1) as usize;
+                self.grid.cells[r][c].marks[idx] = !self.grid.cells[r][c].marks[idx];
             }
         }
     }
