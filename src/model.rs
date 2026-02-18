@@ -61,6 +61,10 @@ impl Grid {
 
     // Check if placing `value` at (row, col) is valid
     pub fn is_valid_move(&self, row: usize, col: usize, value: u8) -> bool {
+        if row >= 6 || col >= 6 || !(1..=6).contains(&value) {
+            return false;
+        }
+
         // Row check
         for c in 0..6 {
             if c != col {
@@ -212,6 +216,9 @@ impl Game {
     
     // Check if the value matches the solution
     pub fn is_correct_move(&self, row: usize, col: usize, value: u8) -> bool {
+        if row >= 6 || col >= 6 || !(1..=6).contains(&value) {
+            return false;
+        }
         self.solution[row][col] == value
     }
 
@@ -272,5 +279,30 @@ impl Game {
         }
         self.grid.cells[r][c].value = None;
         self.grid.cells[r][c].marks = [false; 6];
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Game, Grid};
+
+    #[test]
+    fn is_valid_move_rejects_out_of_bounds_or_invalid_values() {
+        let grid = Grid::new();
+
+        assert!(!grid.is_valid_move(6, 0, 1));
+        assert!(!grid.is_valid_move(0, 6, 1));
+        assert!(!grid.is_valid_move(0, 0, 0));
+        assert!(!grid.is_valid_move(0, 0, 7));
+    }
+
+    #[test]
+    fn is_correct_move_rejects_out_of_bounds_or_invalid_values() {
+        let game = Game::new();
+
+        assert!(!game.is_correct_move(6, 0, 1));
+        assert!(!game.is_correct_move(0, 6, 1));
+        assert!(!game.is_correct_move(0, 0, 0));
+        assert!(!game.is_correct_move(0, 0, 7));
     }
 }
