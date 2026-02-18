@@ -290,6 +290,7 @@ mod tests {
     fn is_valid_move_rejects_out_of_bounds_or_invalid_values() {
         let grid = Grid::new();
 
+        assert!(grid.is_valid_move(0, 0, 1));
         assert!(!grid.is_valid_move(6, 0, 1));
         assert!(!grid.is_valid_move(0, 6, 1));
         assert!(!grid.is_valid_move(0, 0, 0));
@@ -299,7 +300,9 @@ mod tests {
     #[test]
     fn is_correct_move_rejects_out_of_bounds_or_invalid_values() {
         let game = Game::new();
+        let valid_value = game.solution[0][0];
 
+        assert!(game.is_correct_move(0, 0, valid_value));
         assert!(!game.is_correct_move(6, 0, 1));
         assert!(!game.is_correct_move(0, 6, 1));
         assert!(!game.is_correct_move(0, 0, 0));
