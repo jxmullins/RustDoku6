@@ -27,6 +27,14 @@ pub struct Grid {
 
 use rand::prelude::*;
 
+const GRID_SIZE: usize = 6;
+const MIN_CELL_VALUE: u8 = 1;
+const MAX_CELL_VALUE: u8 = 6;
+
+fn is_in_bounds_and_valid_value(row: usize, col: usize, value: u8) -> bool {
+    row < GRID_SIZE && col < GRID_SIZE && (MIN_CELL_VALUE..=MAX_CELL_VALUE).contains(&value)
+}
+
 impl Grid {
     pub fn new() -> Self {
         Self {
@@ -61,6 +69,10 @@ impl Grid {
 
     // Check if placing `value` at (row, col) is valid
     pub fn is_valid_move(&self, row: usize, col: usize, value: u8) -> bool {
+        if !is_in_bounds_and_valid_value(row, col, value) {
+            return false;
+        }
+
         // Row check
         for c in 0..6 {
             if c != col {
@@ -212,6 +224,9 @@ impl Game {
     
     // Check if the value matches the solution
     pub fn is_correct_move(&self, row: usize, col: usize, value: u8) -> bool {
+        if !is_in_bounds_and_valid_value(row, col, value) {
+            return false;
+        }
         self.solution[row][col] == value
     }
 
@@ -272,5 +287,33 @@ impl Game {
         }
         self.grid.cells[r][c].value = None;
         self.grid.cells[r][c].marks = [false; 6];
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Game, Grid};
+
+    #[test]
+    fn is_valid_move_rejects_out_of_bounds_or_invalid_values() {
+        let grid = Grid::new();
+
+        assert!(grid.is_valid_move(0, 0, 1));
+        assert!(!grid.is_valid_move(6, 0, 1));
+        assert!(!grid.is_valid_move(0, 6, 1));
+        assert!(!grid.is_valid_move(0, 0, 0));
+        assert!(!grid.is_valid_move(0, 0, 7));
+    }
+
+    #[test]
+    fn is_correct_move_rejects_out_of_bounds_or_invalid_values() {
+        let game = Game::new();
+        let valid_value = game.solution[0][0];
+
+        assert!(game.is_correct_move(0, 0, valid_value));
+        assert!(!game.is_correct_move(6, 0, 1));
+        assert!(!game.is_correct_move(0, 6, 1));
+        assert!(!game.is_correct_move(0, 0, 0));
+        assert!(!game.is_correct_move(0, 0, 7));
     }
 }
