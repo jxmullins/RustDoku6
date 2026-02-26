@@ -27,6 +27,14 @@ pub struct Grid {
 
 use rand::prelude::*;
 
+const GRID_SIZE: usize = 6;
+const MIN_CELL_VALUE: u8 = 1;
+const MAX_CELL_VALUE: u8 = 6;
+
+fn is_in_bounds_and_valid_value(row: usize, col: usize, value: u8) -> bool {
+    row < GRID_SIZE && col < GRID_SIZE && (MIN_CELL_VALUE..=MAX_CELL_VALUE).contains(&value)
+}
+
 impl Grid {
     pub fn new() -> Self {
         Self {
@@ -61,7 +69,7 @@ impl Grid {
 
     // Check if placing `value` at (row, col) is valid
     pub fn is_valid_move(&self, row: usize, col: usize, value: u8) -> bool {
-        if row >= 6 || col >= 6 || !(1..=6).contains(&value) {
+        if !is_in_bounds_and_valid_value(row, col, value) {
             return false;
         }
 
@@ -216,7 +224,7 @@ impl Game {
     
     // Check if the value matches the solution
     pub fn is_correct_move(&self, row: usize, col: usize, value: u8) -> bool {
-        if row >= 6 || col >= 6 || !(1..=6).contains(&value) {
+        if !is_in_bounds_and_valid_value(row, col, value) {
             return false;
         }
         self.solution[row][col] == value
